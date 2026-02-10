@@ -1,0 +1,94 @@
+from selenium import webdriver
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.chrome.options import Options
+from webdriver_manager.chrome import ChromeDriverManager
+from bs4 import BeautifulSoup
+import time
+import os
+from linebot.v3.messaging import (
+    Configuration,
+    ApiClient,
+    MessagingApi,
+    TextMessage,
+    PushMessageRequest
+)
+# --- 設定區 ---
+CHANNEL_ACCESS_TOKEN = os.environ.get('LINE_CHANNEL_ACCESS_TOKEN', 'DsrXA3UcWQkYEO9aG831xPQIxhyHWFEJYuPLxDGIIoAf1Vs28fxRSPnGFygnH1Us9mBRo/wlUR81yJxJmQAVJgxUMLyb3dmekgVanCSEwiwWx/0DAlCNgl36rbxM/5gkRnyXQQ7P0KDLzKQ/PLtGawdB04t89/1O/w1cDnyilFU=')
+USER_ID = os.environ.get('LINE_USER_ID', 'Ud344d3f793868ca66d32dc2f48f7ed68')
+ID_FILE = 'last_id.txt'  # 用來儲存最後一筆公告 ID 的檔案
+configuration = Configuration(access_token=CHANNEL_ACCESS_TOKEN)
+
+# 1. 讀取上次存的 ID
+last_id = ""
+if os.path.exists(ID_FILE):
+    with open(ID_FILE, 'r') as f:
+        last_id = f.read().strip()
+temp = int(last_id)
+
+def get_announcements(temp):
+    chrome_options = Options()
+    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=chrome_options)
+    
+    announcements = []
+    try:
+        driver.get("https://www.ahs.nccu.edu.tw/home")
+        time.sleep(5) # 等待載入
+        soup = BeautifulSoup(driver.page_source, 'lxml')
+        rows = soup.find_all('tr', class_='tcontent')
+        
+        # 從HTML原始碼抓取公告標題
+        for row in rows:
+            cols = row.find_all('td')
+            if len(cols) >= 3:
+                link_tag = cols[2].find('a', id='content_href')
+                nid = link_tag.get('nid')
+                # 選取最新公告的ID(取nid最大者)
+                if int(nid) > temp:
+                    temp = int(nid)
+                title = link_tag.get('title')
+                announcements.append({'id': nid, 'title': title})
+
+    finally:
+        driver.quit()
+    return announcements, temp
+
+# --- 主程式邏輯 ---
+# 2. 抓取公告
+all_news, temp = get_announcements(temp)
+
+if all_news:
+    # 3. 找出比上次更新的公告 (假設第一筆是最新的)
+    new_posts = []
+    for post in all_news:
+        if post['id'] > last_id:
+            new_posts.append(post)
+    
+    # 4. 發送通知
+    if new_posts:
+        print(f"發現 {len(new_posts)} 則新公告！")
+        
+        # v3 新版發送邏輯：使用 ApiClient
+        with ApiClient(configuration) as api_client:
+            line_bot_api = MessagingApi(api_client)
+            
+            for post in reversed(new_posts):
+                stable_link = f"https://www.ahs.nccu.edu.tw/ischool/public/news_view/show.php?nid={post['id']}"
+                announcement_text = f"🔔 政附新公告：\n【{post['title']}】\n\n🔗 連結：\n{stable_link}"
+                
+                # 建立發送請求
+                push_message_request = PushMessageRequest(
+                    to=USER_ID,
+                    messages=[TextMessage(text=announcement_text)]
+                )
+                
+                # 執行推播
+                line_bot_api.push_message(push_message_request)
+        
+        # 5. 更新最後記錄
+        with open(ID_FILE, 'w') as f:
+            f.write(str(temp))
+    else:
+        print("目前沒有新公告。")

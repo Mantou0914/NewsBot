@@ -1,0 +1,39 @@
+name: AHS_News_Bot_Automation
+
+on:
+  schedule:
+    - cron: '0 * * * *'    # 每一小時執行一次 (UTC 時間，0 分時執行)
+  workflow_dispatch:        # 讓你可以手動點擊按鈕立即執行
+
+permissions:                # 賦予寫入權限，才能更新 last_id.txt
+  contents: write
+
+jobs:
+  run-scraper:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 1. 複製程式碼
+        uses: actions/checkout@v4
+
+      - name: 2. 設定 Python 環境
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: 3. 安裝必要套件
+        run: |
+          pip install selenium webdriver-manager beautifulsoup4 line-bot-sdk
+
+      - name: 4. 執行爬蟲主程式
+        env:
+          LINE_CHANNEL_ACCESS_TOKEN: ${{ secrets.LINE_CHANNEL_ACCESS_TOKEN }}
+          LINE_USER_ID: ${{ secrets.LINE_USER_ID }}
+        run: python main.py
+
+      - name: 5. 儲存最新進度 (Git Commit)
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add last_id.txt
+          git commit -m "Update last_id [skip ci]" || echo "No changes to commit"
+          git push
