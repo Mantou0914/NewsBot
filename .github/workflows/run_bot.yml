@@ -22,7 +22,7 @@ jobs:
 
       - name: 3. 安裝必要套件
         run: |
-          pip install selenium webdriver-manager beautifulsoup4 line-bot-sdk
+          pip install selenium webdriver-manager beautifulsoup4 line-bot-sdk lxml
 
       - name: 4. 執行爬蟲主程式
         env:
