@@ -1,6 +1,7 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
+from selenium.common.exceptions import UnexpectedAlertPresentException, NoAlertPresentException
 from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
 import time
@@ -36,6 +37,15 @@ def get_announcements(temp):
     try:
         driver.get("https://www.ahs.nccu.edu.tw/home")
         time.sleep(5) # 等待載入
+
+        # 檢查是否有討厭的彈窗
+        try:
+            alert = driver.switch_to.alert
+            print(f"偵測到網頁彈窗: {alert.text}，正在嘗試關閉...")
+            alert.accept() # 按下「確定」關閉彈窗
+        except NoAlertPresentException:
+            pass # 沒有彈窗，正常執行
+
         soup = BeautifulSoup(driver.page_source, 'lxml')
         rows = soup.find_all('tr', class_='tcontent')
         
@@ -50,7 +60,12 @@ def get_announcements(temp):
                     temp = int(nid)
                 title = link_tag.get('title')
                 announcements.append({'id': nid, 'title': title})
-
+    except UnexpectedAlertPresentException as e:
+        print(f"發生意外彈窗，程式跳過本次執行: {e}")
+        return [], last_id # 發生錯誤時回傳空清單，避免程式崩潰
+    except Exception as e:
+        print(f"發生其他錯誤: {e}")
+        return [], last_id
     finally:
         driver.quit()
     return announcements, temp
