@@ -7,15 +7,14 @@ from bs4 import BeautifulSoup
 import time
 import os
 from linebot.v3.messaging import (
+    BroadcastRequest,
     Configuration,
     ApiClient,
     MessagingApi,
     TextMessage,
-    PushMessageRequest
 )
 # --- 設定區 ---
 CHANNEL_ACCESS_TOKEN = os.environ.get('LINE_CHANNEL_ACCESS_TOKEN', 'DsrXA3UcWQkYEO9aG831xPQIxhyHWFEJYuPLxDGIIoAf1Vs28fxRSPnGFygnH1Us9mBRo/wlUR81yJxJmQAVJgxUMLyb3dmekgVanCSEwiwWx/0DAlCNgl36rbxM/5gkRnyXQQ7P0KDLzKQ/PLtGawdB04t89/1O/w1cDnyilFU=')
-USER_ID = os.environ.get('LINE_USER_ID', 'Ud344d3f793868ca66d32dc2f48f7ed68')
 ID_FILE = 'last_id.txt'  # 用來儲存最後一筆公告 ID 的檔案
 configuration = Configuration(access_token=CHANNEL_ACCESS_TOKEN)
 
@@ -78,32 +77,39 @@ if all_news:
     # 3. 找出比上次更新的公告 (假設第一筆是最新的)
     new_posts = []
     for post in all_news:
-        if post['id'] > last_id:
-            new_posts.append(post)
+        if int(post['id']) > int(last_id):
+            post_link = f"https://www.ahs.nccu.edu.tw/p/406-1000-{post['id']}.php"
+            formatted_post = f"📌 {post['text']}\n🔗 連結：{post_link}"
+            new_posts.append(formatted_post)
     
     # 4. 發送通知
     if new_posts:
         print(f"發現 {len(new_posts)} 則新公告！")
+
+        news_texts = [post['text'] for post in new_posts]
+
+        combined_message = "📢 偵測到新公告！\n\n" + "\n\n".join(news_texts)
         
         # v3 新版發送邏輯：使用 ApiClient
         with ApiClient(configuration) as api_client:
             line_bot_api = MessagingApi(api_client)
             
-            for post in reversed(new_posts):
-                stable_link = f"https://www.ahs.nccu.edu.tw/ischool/public/news_view/show.php?nid={post['id']}"
-                announcement_text = f"🔔 政附新公告：\n【{post['title']}】\n\n🔗 連結：\n{stable_link}"
-                
+            try:
                 # 建立發送請求
-                push_message_request = PushMessageRequest(
-                    to=USER_ID,
-                    messages=[TextMessage(text=announcement_text)]
+                broadcast_request = BroadcastRequest(
+                    messages=[TextMessage(text=combined_message)]
                 )
                 
                 # 執行推播
-                line_bot_api.push_message(push_message_request)
+                line_bot_api.broadcast(broadcast_request)
         
-        # 5. 更新最後記錄
-        with open(ID_FILE, 'w') as f:
-            f.write(str(temp))
+                # 5. 更新最後記錄
+                with open(ID_FILE, 'w') as f:
+                    f.write(str(temp))
+        
+                print(f"成功發送 {len(new_posts)} 則新公告，ID 已更新為 {temp}")
+                
+            except Exception as e:
+                print(f"發送失敗: {e}")
     else:
         print("目前沒有新公告。")
