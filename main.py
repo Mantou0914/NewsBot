@@ -76,11 +76,14 @@ all_news, temp = get_announcements(temp)
 if all_news:
     # 3. 找出比上次更新的公告 (假設第一筆是最新的)
     new_posts_content = []
+    new_post_id = []
     for post in all_news:
         if int(post['id']) > int(last_id):
-            post_link = f"https://www.ahs.nccu.edu.tw/ischool/public/news_view/show.php?nid={post['id']}p"
-            formatted_post = f"📌 {post['title']}\n🔗 連結：{post_link}"
-            new_posts_content.append(formatted_post)
+            if post['id'] not in new_post_id:
+                post_link = f"https://www.ahs.nccu.edu.tw/ischool/public/news_view/show.php?nid={post['id']}"
+                formatted_post = f"📌 {post['title']}\n🔗 連結：{post_link}"
+                new_posts_content.append(formatted_post)
+                new_post_id.append(post['id'])
     
     # 4. 發送通知
     if new_posts_content:
