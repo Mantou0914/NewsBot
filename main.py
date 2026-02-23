@@ -105,7 +105,7 @@ if all_news:
                 with open(ID_FILE, 'w') as f:
                     f.write(str(temp))
         
-                print(f"成功發送 {len(new_posts)} 則新公告，ID 已更新為 {temp}")
+                print(f"成功發送 {len(new_posts_content)} 則新公告，ID 已更新為 {temp}")
 
             except Exception as e:
                 print(f"發送失敗: {e}")
