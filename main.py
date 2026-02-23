@@ -79,14 +79,14 @@ if all_news:
     for post in all_news:
         if int(post['id']) > int(last_id):
             post_link = f"https://www.ahs.nccu.edu.tw/p/406-1000-{post['id']}.php"
-            formatted_post = f"📌 {post['text']}\n🔗 連結：{post_link}"
+            formatted_post = f"📌 {post['title']}\n🔗 連結：{post_link}"
             new_posts.append(formatted_post)
     
     # 4. 發送通知
     if new_posts:
         print(f"發現 {len(new_posts)} 則新公告！")
 
-        news_texts = [post['text'] for post in new_posts]
+        news_texts = [post['title'] for post in new_posts]
 
         combined_message = "📢 偵測到新公告！\n\n" + "\n\n".join(news_texts)
         
@@ -108,7 +108,7 @@ if all_news:
                     f.write(str(temp))
         
                 print(f"成功發送 {len(new_posts)} 則新公告，ID 已更新為 {temp}")
-                
+
             except Exception as e:
                 print(f"發送失敗: {e}")
     else:
