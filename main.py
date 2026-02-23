@@ -78,7 +78,7 @@ if all_news:
     new_posts_content = []
     for post in all_news:
         if int(post['id']) > int(last_id):
-            post_link = f"https://www.ahs.nccu.edu.tw/p/406-1000-{post['id']}.php"
+            post_link = f"https://www.ahs.nccu.edu.tw/ischool/public/news_view/show.php?nid={post['id']}p"
             formatted_post = f"📌 {post['title']}\n🔗 連結：{post_link}"
             new_posts_content.append(formatted_post)
     
@@ -92,22 +92,22 @@ if all_news:
         with ApiClient(configuration) as api_client:
             line_bot_api = MessagingApi(api_client)
             
-            try:
-                # 建立發送請求
-                broadcast_request = BroadcastRequest(
-                    messages=[TextMessage(text=combined_message)]
-                )
-                
-                # 執行推播
-                line_bot_api.broadcast(broadcast_request)
-        
-                # 5. 更新最後記錄
-                with open(ID_FILE, 'w') as f:
-                    f.write(str(temp))
-        
-                print(f"成功發送 {len(new_posts_content)} 則新公告，ID 已更新為 {temp}")
+        try:
+            # 建立發送請求
+            broadcast_request = BroadcastRequest(
+                messages=[TextMessage(text=combined_message)]
+            )
+            
+            # 執行推播
+            line_bot_api.broadcast(broadcast_request)
+    
+            # 5. 更新最後記錄
+            with open(ID_FILE, 'w') as f:
+                f.write(str(temp))
+    
+            print(f"成功發送 {len(new_posts_content)} 則新公告，ID 已更新為 {temp}")
 
-            except Exception as e:
-                print(f"發送失敗: {e}")
+        except Exception as e:
+            print(f"發送失敗: {e}")
     else:
         print("目前沒有新公告。")
