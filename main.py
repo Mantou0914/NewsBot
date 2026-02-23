@@ -75,20 +75,18 @@ all_news, temp = get_announcements(temp)
 
 if all_news:
     # 3. 找出比上次更新的公告 (假設第一筆是最新的)
-    new_posts = []
+    new_posts_content = []
     for post in all_news:
         if int(post['id']) > int(last_id):
             post_link = f"https://www.ahs.nccu.edu.tw/p/406-1000-{post['id']}.php"
             formatted_post = f"📌 {post['title']}\n🔗 連結：{post_link}"
-            new_posts.append(formatted_post)
+            new_posts_content.append(formatted_post)
     
     # 4. 發送通知
-    if new_posts:
-        print(f"發現 {len(new_posts)} 則新公告！")
+    if new_posts_content:
+        print(f"發現 {len(new_posts_content)} 則新公告！")
 
-        news_texts = [post['title'] for post in new_posts]
-
-        combined_message = "📢 偵測到新公告！\n\n" + "\n\n".join(news_texts)
+        combined_message = "📢 偵測到新公告！\n\n" + "\n\n".join(new_posts_content)
         
         # v3 新版發送邏輯：使用 ApiClient
         with ApiClient(configuration) as api_client:
