@@ -6,15 +6,19 @@ from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
 import time
 import os
+import json
+import gspread
+from google.oauth2.service_account import Credentials
 from linebot.v3.messaging import (
     BroadcastRequest,
     Configuration,
     ApiClient,
     MessagingApi,
     TextMessage,
+    MulticastRequest
 )
 # --- 設定區 ---
-CHANNEL_ACCESS_TOKEN = os.environ.get('LINE_CHANNEL_ACCESS_TOKEN', 'DsrXA3UcWQkYEO9aG831xPQIxhyHWFEJYuPLxDGIIoAf1Vs28fxRSPnGFygnH1Us9mBRo/wlUR81yJxJmQAVJgxUMLyb3dmekgVanCSEwiwWx/0DAlCNgl36rbxM/5gkRnyXQQ7P0KDLzKQ/PLtGawdB04t89/1O/w1cDnyilFU=')
+CHANNEL_ACCESS_TOKEN = os.environ.get('LINE_CHANNEL_ACCESS_TOKEN')
 ID_FILE = 'last_id.txt'  # 用來儲存最後一筆公告 ID 的檔案
 configuration = Configuration(access_token=CHANNEL_ACCESS_TOKEN)
 
