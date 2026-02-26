@@ -1,7 +1,7 @@
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
-from selenium.common.exceptions import UnexpectedAlertPresentException, NoAlertPresentException
+from selenium.common.exceptions import UnexpectedAlertPresentException
 from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
 import time
@@ -18,7 +18,7 @@ CHANNEL_ACCESS_TOKEN = os.environ.get('LINE_CHANNEL_ACCESS_TOKEN', 'DsrXA3UcWQkY
 ID_FILE = 'last_id.txt'  # 用來儲存最後一筆公告 ID 的檔案
 configuration = Configuration(access_token=CHANNEL_ACCESS_TOKEN)
 
-# 1. 讀取上次存的 ID
+# 讀取上次存的 ID
 last_id = ""
 if os.path.exists(ID_FILE):
     with open(ID_FILE, 'r') as f:
@@ -36,14 +36,6 @@ def get_announcements(temp):
     try:
         driver.get("https://www.ahs.nccu.edu.tw/home")
         time.sleep(5) # 等待載入
-
-        # 檢查是否有討厭的彈窗
-        try:
-            alert = driver.switch_to.alert
-            print(f"偵測到網頁彈窗: {alert.text}，正在嘗試關閉...")
-            alert.accept() # 按下「確定」關閉彈窗
-        except NoAlertPresentException:
-            pass # 沒有彈窗，正常執行
 
         soup = BeautifulSoup(driver.page_source, 'lxml')
         rows = soup.find_all('tr', class_='tcontent')
@@ -70,11 +62,11 @@ def get_announcements(temp):
     return announcements, temp
 
 # --- 主程式邏輯 ---
-# 2. 抓取公告
+# 抓取公告
 all_news, temp = get_announcements(temp)
 
 if all_news:
-    # 3. 找出比上次更新的公告 (假設第一筆是最新的)
+    # 找出比上次更新的公告
     new_posts_content = []
     new_post_id = []
     for post in all_news:
@@ -85,26 +77,25 @@ if all_news:
                 new_posts_content.append(formatted_post)
                 new_post_id.append(post['id'])
     
-    # 4. 發送通知
+    # 發送通知
     if new_posts_content:
         print(f"發現 {len(new_posts_content)} 則新公告！")
 
         combined_message = "📢 偵測到新公告！\n\n" + "\n\n".join(new_posts_content)
         
-        # v3 新版發送邏輯：使用 ApiClient
         with ApiClient(configuration) as api_client:
             line_bot_api = MessagingApi(api_client)
             
         try:
-            # 建立發送請求
+            # 建立廣播請求
             broadcast_request = BroadcastRequest(
                 messages=[TextMessage(text=combined_message)]
             )
             
-            # 執行推播
+            # 廣播
             line_bot_api.broadcast(broadcast_request)
     
-            # 5. 更新最後記錄
+            # 更新最後公告ID
             with open(ID_FILE, 'w') as f:
                 f.write(str(temp))
     
