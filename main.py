@@ -91,7 +91,7 @@ grade10_ids = [u['UserID'] for u in users if str(u['Grade']) == '10']
 grade11_ids = [u['UserID'] for u in users if str(u['Grade']) == '11']
 grade12_ids = [u['UserID'] for u in users if str(u['Grade']) == '12']
 all_user_ids = [u['UserID'] for u in users] # 所有人
-
+print(grade12_ids)
 # --- 主程式邏輯 ---
 # 抓取公告
 all_news, temp = get_announcements(temp)
