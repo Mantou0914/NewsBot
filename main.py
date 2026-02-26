@@ -29,6 +29,24 @@ if os.path.exists(ID_FILE):
         last_id = f.read().strip()
 temp = int(last_id)
 
+def get_users_from_sheets():
+    try:
+        # 從 GitHub Secrets 抓取 JSON
+        service_account_info = json.loads(os.getenv("GOOGLE_SHEETS_JSON"))
+        scopes = [
+            "https://www.googleapis.com/auth/spreadsheets",
+            "https://www.googleapis.com/auth/drive"
+        ]
+        creds = Credentials.from_service_account_info(service_account_info, scopes=scopes)
+        client = gspread.authorize(creds)
+        
+        # 開啟試算表 (請確保名稱正確)
+        sheet = client.open("NewsBot_Users").sheet1
+        return sheet.get_all_records()
+    except Exception as e:
+        print(f"❌ Google Sheets 讀取失敗: {e}")
+        return []
+
 def get_announcements(temp):
     chrome_options = Options()
     chrome_options.add_argument("--headless")
@@ -64,6 +82,15 @@ def get_announcements(temp):
     finally:
         driver.quit()
     return announcements, temp
+
+users = get_users_from_sheets()
+grade7_ids = [u['UserID'] for u in users if str(u['Grade']) == '7']
+grade8_ids = [u['UserID'] for u in users if str(u['Grade']) == '8']
+grade9_ids = [u['UserID'] for u in users if str(u['Grade']) == '9']
+grade10_ids = [u['UserID'] for u in users if str(u['Grade']) == '10']
+grade11_ids = [u['UserID'] for u in users if str(u['Grade']) == '11']
+grade12_ids = [u['UserID'] for u in users if str(u['Grade']) == '12']
+all_user_ids = [u['UserID'] for u in users] # 所有人
 
 # --- 主程式邏輯 ---
 # 抓取公告
