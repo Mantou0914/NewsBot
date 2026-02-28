@@ -135,7 +135,7 @@ all_news, temp = get_announcements(temp)
 
 if all_news:
     # 找出新的公告
-    all_news = dict(set(all_news))
+    all_news = list(set(all_news))
     new_posts_content = []
     new_posts_message = []
     for post in all_news:
