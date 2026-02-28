@@ -5,6 +5,7 @@ from selenium.common.exceptions import UnexpectedAlertPresentException
 from webdriver_manager.chrome import ChromeDriverManager
 from bs4 import BeautifulSoup
 import time
+import re
 import os
 import json
 import gspread
@@ -29,6 +30,7 @@ if os.path.exists(ID_FILE):
         last_id = f.read().strip()
 temp = int(last_id)
 
+# 讀取使用者資料
 def get_users_from_sheets():
     try:
         # 從 GitHub Secrets 抓取 JSON
@@ -83,21 +85,56 @@ def get_announcements(temp):
         driver.quit()
     return announcements, temp
 
+def categorize_news(title):
+    if re.search(r"教師|老師|學務創新人員", title):
+        return "teacher"
+    elif re.search(r"國一", title):
+        return "G7"
+    elif re.search(r"國二", title):
+        return "G8"
+    elif re.search(r"國三", title):
+        return "G9"
+    elif re.search(r"高一", title):
+        return "G10"
+    elif re.search(r"高二", title):
+        return "G11"
+    elif re.search(r"高三", title):
+        return "G12"
+    elif re.search(r"國中", title) and not re.search(r"高國中", title):
+        return "junior high"
+    elif re.search(r"高中", title) and not re.search(r"國高中", title):
+        return "senior high"
+    elif re.search(r"國高中|高國中", title) and not re.search(r"美國|全國", title):
+        return "the whole school"
+    elif re.search(r"獎學金|獎助學金", title):
+        return "scholarships or grants"
+    elif re.search(r"大學", title)and not re.search(r"附屬", title):
+        return "college"
+    else:
+        return "activities"
+
+
 users = get_users_from_sheets()
-grade7_ids = [u['UserID'] for u in users if str(u['Grade']) == '7']
-grade8_ids = [u['UserID'] for u in users if str(u['Grade']) == '8']
-grade9_ids = [u['UserID'] for u in users if str(u['Grade']) == '9']
-grade10_ids = [u['UserID'] for u in users if str(u['Grade']) == '10']
-grade11_ids = [u['UserID'] for u in users if str(u['Grade']) == '11']
-grade12_ids = [u['UserID'] for u in users if str(u['Grade']) == '12']
-all_user_ids = [u['UserID'] for u in users] # 所有人
+general_ids = [u['UserID'] for u in users if 'gen' in str(u['Category'])]
+grade7_ids = [u['UserID'] for u in users if '7' in str(u['Category'])]
+grade8_ids = [u['UserID'] for u in users if '8' in str(u['Category'])]
+grade9_ids = [u['UserID'] for u in users if '9' in str(u['Category'])]
+grade10_ids = [u['UserID'] for u in users if '10' in str(u['Category'])]
+grade11_ids = [u['UserID'] for u in users if '11' in str(u['Category'])]
+grade12_ids = [u['UserID'] for u in users if '12' in str(u['Category'])]
+teachers_ids = [u['UserID'] for u in users if 'tea' in str(u['Category'])]
+college_informations_ids = [u['UserID'] for u in users if 'col' in str(u['Category'])]
+activities_informations_ids = [u['UserID'] for u in users if 'act' in str(u['Category'])]
+scholarships_grants_ids = [u['UserID'] for u in users if 'mon' in str(u['Category'])]
+
+ids_list = [grade7_ids, grade8_ids, grade9_ids, grade10_ids, grade11_ids, grade12_ids, teachers_ids, college_informations_ids, college_informations_ids, activities_informations_ids, scholarships_grants_ids]
 
 # --- 主程式邏輯 ---
 # 抓取公告
 all_news, temp = get_announcements(temp)
 
 if all_news:
-    # 找出比上次更新的公告
+    # 找出新的公告
     new_posts_content = []
     new_post_id = []
     for post in all_news:
@@ -112,25 +149,88 @@ if all_news:
     if new_posts_content:
         print(f"發現 {len(new_posts_content)} 則新公告！")
 
-        combined_message = "📢 偵測到新公告！\n\n" + "\n\n".join(new_posts_content)
-        
+        G7_message = []
+        G8_message = []
+        G9_message = []
+        G10_message = []
+        G11_message = []
+        G12_message = []
+        teacher_message = []
+        college_message = []
+        activities_message = []
+        scholarships_grants_message = []
+
+        for post in new_posts_content:
+            category = categorize_news(str(post['title']))
+            if category == "teacher":
+                teacher_message.append(post)
+            elif category == "G7":
+                G7_message.append(post)
+            elif category == "G8":
+                G8_message.append(post)
+            elif category == "G9":
+                G9_message.append(post)
+            elif category == "G10":
+                G10_message.append(post)
+            elif category == "G11":
+                G11_message.append(post)
+            elif category == "G12":
+                G12_message.append(post)
+            elif category == "junior high":
+                G7_message.append(post)
+                G8_message.append(post)
+                G9_message.append(post)
+            elif category == "senior high":
+                G10_message.append(post)
+                G11_message.append(post)
+                G12_message.append(post)
+            elif category == "the whole school":
+                G7_message.append(post)
+                G8_message.append(post)
+                G9_message.append(post)
+                G10_message.append(post)
+                G11_message.append(post)
+                G12_message.append(post)
+            elif category == "scholarships or grants":
+                scholarships_grants_message.append(post)
+            elif category == "college":
+                college_message.append(post)
+            elif category == "activities":
+                activities_message.append(post)
+
+        general_summary = "📢 偵測到新公告！\n\n" + "\n\n".join(new_posts_content)
+        G7_summary = "📢 偵測到新公告！\n\n" + "\n\n".join(G7_message)
+        G8_summary = "📢 偵測到新公告！\n\n" + "\n\n".join(G8_message)
+        G9_summary = "📢 偵測到新公告！\n\n" + "\n\n".join(G9_message)
+        G10_summary = "📢 偵測到新公告！\n\n" + "\n\n".join(G10_message)
+        G11_summary = "📢 偵測到新公告！\n\n" + "\n\n".join(G11_message)
+        G12_summary = "📢 偵測到新公告！\n\n" + "\n\n".join(G12_message)
+        teacher_summary = "📢 偵測到新公告！\n\n" + "\n\n".join(teacher_message)
+        college_summary = "📢 偵測到新公告！\n\n" + "\n\n".join(college_message)
+        activities_summary = "📢 偵測到新公告！\n\n" + "\n\n".join(activities_message)
+        scholarships_grants_summary = "📢 偵測到新公告！\n\n" + "\n\n".join(scholarships_grants_message)
+
+        summary_list = [G7_summary, G8_summary, G9_summary, G10_summary, G11_summary, G12_summary, teacher_summary, college_summary, activities_summary, scholarships_grants_summary, general_summary]
+
+
         with ApiClient(configuration) as api_client:
             line_bot_api = MessagingApi(api_client)
             
         try:
-            # 建立廣播請求
-            broadcast_request = BroadcastRequest(
-                messages=[TextMessage(text=combined_message)]
-            )
-            
-            # 廣播
-            line_bot_api.broadcast(broadcast_request)
-    
+            for i in range(11):
+                if ids_list[i] and summary_list[i]:
+                    line_bot_api.multicast(
+                        MulticastRequest(
+                            to=ids_list[i],
+                            messages=[TextMessage(text=summary_list[i])]
+                        )
+                    )
+
             # 更新最後公告ID
             with open(ID_FILE, 'w') as f:
                 f.write(str(temp))
     
-            print(f"成功發送 {len(new_posts_content)} 則新公告，ID 已更新為 {temp}")
+            print(f"ID 已更新為 {temp}")
 
         except Exception as e:
             print(f"發送失敗: {e}")
