@@ -135,15 +135,17 @@ all_news, temp = get_announcements(temp)
 
 if all_news:
     # 找出新的公告
-    all_news = list(set(all_news))
     new_posts_content = []
+    new_posts_ids = []
     new_posts_message = []
     for post in all_news:
         if int(post['id']) > int(last_id):
-            post['link'] = f"https://www.ahs.nccu.edu.tw/ischool/public/news_view/show.php?nid={post['id']}"
-            new_posts_content.append(post)
-            formatted_post = f"📌 {post['title']}\n🔗 連結：{post['link']}"
-            new_posts_message.append(formatted_post)
+            if post['id'] not in new_posts_ids:
+                post['link'] = f"https://www.ahs.nccu.edu.tw/ischool/public/news_view/show.php?nid={post['id']}"
+                new_posts_content.append(post)
+                formatted_post = f"📌 {post['title']}\n🔗 連結：{post['link']}"
+                new_posts_message.append(formatted_post)
+                new_posts_ids.append(post['id'])
 
     # 發送通知
     if new_posts_content:
