@@ -161,7 +161,7 @@ if all_news:
         scholarships_grants_message = []
 
         for post in new_posts_content:
-            category = categorize_news(str(post['title']))
+            category = categorize_news(post['title'])
             if category == "teacher":
                 teacher_message.append(post)
             elif category == "G7":
