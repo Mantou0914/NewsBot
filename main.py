@@ -135,19 +135,19 @@ all_news, temp = get_announcements(temp)
 
 if all_news:
     # 找出新的公告
+    all_news = dict(set(all_news))
     new_posts_content = []
-    new_post_id = []
+    new_posts_message = []
     for post in all_news:
         if int(post['id']) > int(last_id):
-            if post['id'] not in new_post_id:
-                post_link = f"https://www.ahs.nccu.edu.tw/ischool/public/news_view/show.php?nid={post['id']}"
-                formatted_post = f"📌 {post['title']}\n🔗 連結：{post_link}"
-                new_posts_content.append(formatted_post)
-                new_post_id.append(post['id'])
-    
+            post['link'] = f"https://www.ahs.nccu.edu.tw/ischool/public/news_view/show.php?nid={post['id']}"
+            new_posts_content.append(post)
+            formatted_post = f"📌 {post['title']}\n🔗 連結：{post['link']}"
+            new_posts_message.append(formatted_post)
+
     # 發送通知
     if new_posts_content:
-        print(f"發現 {len(new_posts_content)} 則新公告！")
+        print(f"發現 {len(new_posts_message)} 則新公告！")
 
         G7_message = []
         G8_message = []
@@ -161,45 +161,45 @@ if all_news:
         scholarships_grants_message = []
 
         for post in new_posts_content:
-            print(post['title'])
             category = categorize_news(post['title'])
+            formatted_post = f"📌 {post['title']}\n🔗 連結：{post['link']}"
             if category == "teacher":
-                teacher_message.append(post)
+                teacher_message.append(formatted_post)
             elif category == "G7":
-                G7_message.append(post)
+                G7_message.append(formatted_post)
             elif category == "G8":
-                G8_message.append(post)
+                G8_message.append(formatted_post)
             elif category == "G9":
-                G9_message.append(post)
+                G9_message.append(formatted_post)
             elif category == "G10":
-                G10_message.append(post)
+                G10_message.append(formatted_post)
             elif category == "G11":
-                G11_message.append(post)
+                G11_message.append(formatted_post)
             elif category == "G12":
-                G12_message.append(post)
+                G12_message.append(formatted_post)
             elif category == "junior high":
-                G7_message.append(post)
-                G8_message.append(post)
-                G9_message.append(post)
+                G7_message.append(formatted_post)
+                G8_message.append(formatted_post)
+                G9_message.append(formatted_post)
             elif category == "senior high":
-                G10_message.append(post)
-                G11_message.append(post)
-                G12_message.append(post)
+                G10_message.append(formatted_post)
+                G11_message.append(formatted_post)
+                G12_message.append(formatted_post)
             elif category == "the whole school":
-                G7_message.append(post)
-                G8_message.append(post)
-                G9_message.append(post)
-                G10_message.append(post)
-                G11_message.append(post)
-                G12_message.append(post)
+                G7_message.append(formatted_post)
+                G8_message.append(formatted_post)
+                G9_message.append(formatted_post)
+                G10_message.append(formatted_post)
+                G11_message.append(formatted_post)
+                G12_message.append(formatted_post)
             elif category == "scholarships or grants":
-                scholarships_grants_message.append(post)
+                scholarships_grants_message.append(formatted_post)
             elif category == "college":
-                college_message.append(post)
+                college_message.append(formatted_post)
             elif category == "activities":
-                activities_message.append(post)
+                activities_message.append(formatted_post)
 
-        general_summary = "📢 偵測到新公告！\n\n" + "\n\n".join(new_posts_content)
+        general_summary = "📢 偵測到新公告！\n\n" + "\n\n".join(new_posts_message)
         G7_summary = "📢 偵測到新公告！\n\n" + "\n\n".join(G7_message)
         G8_summary = "📢 偵測到新公告！\n\n" + "\n\n".join(G8_message)
         G9_summary = "📢 偵測到新公告！\n\n" + "\n\n".join(G9_message)
