@@ -165,7 +165,7 @@ if all_news:
         for post in new_posts_content:
             category = categorize_news(post['title'])
             formatted_post = f"📌 {post['title']}\n🔗 連結：{post['link']}"
-            print(f"已將{post['id']}成功分類為{category}")
+            print(f"已將{post['title']}成功分類為{category}")
             if category == "teacher":
                 teacher_message.append(formatted_post)
             elif category == "G7":
