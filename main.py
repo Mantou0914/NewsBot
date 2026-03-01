@@ -104,7 +104,7 @@ def categorize_news(title):
         return "junior high"
     elif re.search(r"高中", title) and not re.search(r"國高中", title):
         return "senior high"
-    elif re.search(r"國高中|高國中", title) and not re.search(r"美國|全國", title):
+    elif re.search(r"國高中|高國中|中小學", title) and not re.search(r"美國|全國", title):
         return "the whole school"
     elif re.search(r"獎學金|獎助學金", title):
         return "scholarships or grants"
