@@ -221,8 +221,8 @@ if all_news:
             line_bot_api = MessagingApi(api_client)
             
         try:
-            for i in range(11):
-                if ids_list[i] and summary_list[i]:
+            for i in range(len(ids_list)):
+                if ids_list[i] and len(summary_list[i]) > 12:
                     line_bot_api.multicast(
                         MulticastRequest(
                             to=ids_list[i],
