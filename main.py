@@ -127,7 +127,7 @@ college_informations_ids = [u['UserID'] for u in users if 'col' in str(u['Catego
 activities_informations_ids = [u['UserID'] for u in users if 'act' in str(u['Category'])]
 scholarships_grants_ids = [u['UserID'] for u in users if 'mon' in str(u['Category'])]
 
-ids_list = [grade7_ids, grade8_ids, grade9_ids, grade10_ids, grade11_ids, grade12_ids, teachers_ids, college_informations_ids, college_informations_ids, activities_informations_ids, scholarships_grants_ids]
+ids_list = [grade7_ids, grade8_ids, grade9_ids, grade10_ids, grade11_ids, grade12_ids, teachers_ids, college_informations_ids, activities_informations_ids, scholarships_grants_ids, general_ids]
 
 # --- 主程式邏輯 ---
 # 抓取公告
