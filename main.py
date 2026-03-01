@@ -113,19 +113,24 @@ def categorize_news(title):
     else:
         return "activities"
 
+def get_safe_category(user_row):
+    cat = str(user_row.get('Category', '')).strip()
+    if not cat:  # 如果是空的或是只有空白
+        return "general"
+    return cat.replace('實', ',')
 
 users = get_users_from_sheets()
-general_ids = [u['UserID'] for u in users if 'gen' in str(u['Category'])]
+general_ids = [u['UserID'] for u in users if 'general' in get_safe_category(u)]
 grade7_ids = [u['UserID'] for u in users if '7' in str(u['Category'])]
 grade8_ids = [u['UserID'] for u in users if '8' in str(u['Category'])]
 grade9_ids = [u['UserID'] for u in users if '9' in str(u['Category'])]
 grade10_ids = [u['UserID'] for u in users if '10' in str(u['Category'])]
 grade11_ids = [u['UserID'] for u in users if '11' in str(u['Category'])]
 grade12_ids = [u['UserID'] for u in users if '12' in str(u['Category'])]
-teachers_ids = [u['UserID'] for u in users if 'tea' in str(u['Category'])]
-college_informations_ids = [u['UserID'] for u in users if 'col' in str(u['Category'])]
-activities_informations_ids = [u['UserID'] for u in users if 'act' in str(u['Category'])]
-scholarships_grants_ids = [u['UserID'] for u in users if 'mon' in str(u['Category'])]
+teachers_ids = [u['UserID'] for u in users if '教師' in str(u['Category'])]
+college_informations_ids = [u['UserID'] for u in users if '大學' in str(u['Category'])]
+activities_informations_ids = [u['UserID'] for u in users if '活動' in str(u['Category'])]
+scholarships_grants_ids = [u['UserID'] for u in users if '獎助學金' in str(u['Category'])]
 
 ids_list = [grade7_ids, grade8_ids, grade9_ids, grade10_ids, grade11_ids, grade12_ids, teachers_ids, college_informations_ids, activities_informations_ids, scholarships_grants_ids, general_ids]
 
